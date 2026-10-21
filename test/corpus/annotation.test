@@ -71,3 +71,105 @@ static class f {
     (modifier)
     name: (identifier)
     body: (closure)))
+==========
+Annotation named arguments
+==========
+@KafkaListener(topics = [AGENDAMENTO], groupId = 'g')
+def f() {
+}
+@Topic(Topicos.EVENTO)
+def g() {
+}
+---
+(source_file
+  (function_definition
+    (annotation
+      (identifier)
+      (argument_list
+        (annotation_argument
+          key: (identifier)
+          value: (list
+            (identifier)))
+        (annotation_argument
+          key: (identifier)
+          value: (string
+            (string_content)))))
+    function: (identifier)
+    parameters: (parameter_list)
+    body: (closure))
+  (function_definition
+    (annotation
+      (identifier)
+      (argument_list
+        (dotted_identifier
+          (identifier)
+          (identifier))))
+    function: (identifier)
+    parameters: (parameter_list)
+    body: (closure)))
+==========
+Annotation named arguments with nested annotations
+==========
+@ApiResponse(responseCode = '400', content = [@Content(schema = @Schema(implementation = Erro))])
+def f() {
+}
+---
+(source_file
+  (function_definition
+    (annotation
+      (identifier)
+      (argument_list
+        (annotation_argument
+          key: (identifier)
+          value: (string
+            (string_content)))
+        (annotation_argument
+          key: (identifier)
+          value: (list
+            (annotation
+              (identifier)
+              (argument_list
+                (annotation_argument
+                  key: (identifier)
+                  value: (annotation
+                    (identifier)
+                    (argument_list
+                      (annotation_argument
+                        key: (identifier)
+                        value: (identifier)))))))))))
+    function: (identifier)
+    parameters: (parameter_list)
+    body: (closure)))
+==========
+Annotation with a list of annotations
+==========
+@ApiResponses([
+  @ApiResponse(responseCode = '200'),
+  @ApiResponse(responseCode = '404'),
+])
+def f() {
+}
+---
+(source_file
+  (function_definition
+    (annotation
+      (identifier)
+      (argument_list
+        (list
+          (annotation
+            (identifier)
+            (argument_list
+              (annotation_argument
+                key: (identifier)
+                value: (string
+                  (string_content)))))
+          (annotation
+            (identifier)
+            (argument_list
+              (annotation_argument
+                key: (identifier)
+                value: (string
+                  (string_content))))))))
+    function: (identifier)
+    parameters: (parameter_list)
+    body: (closure)))

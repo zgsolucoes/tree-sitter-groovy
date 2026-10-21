@@ -141,8 +141,30 @@ module.exports = grammar({
     annotation: $ => prec.right(seq(
       '@',
       alias(token.immediate(regexp_or([IDENTIFIER_REGEX, TYPE_REGEX])), $.identifier),
-      optional($.argument_list),
+      optional(choice($.argument_list, alias($._annotation_argument_list, $.argument_list))),
     )),
+
+    // `@Ann(key = value, ...)`: Java-style named attributes
+    _annotation_argument_list: $ => seq('(', choice(
+      list_of($.annotation_argument),
+      $.annotation,
+      alias($._annotation_value_list, $.list),
+    ), ')'),
+
+    annotation_argument: $ => seq(
+      field('key', $.identifier),
+      '=',
+      field('value', $._annotation_value),
+    ),
+
+    // nested annotations (`schema = @Schema(..)`, `content = [@Content(..)]`)
+    _annotation_value: $ => choice(
+      $._expression,
+      $.annotation,
+      alias($._annotation_value_list, $.list),
+    ),
+
+    _annotation_value_list: $ => seq('[', list_of($.annotation), ']'),
 
     assertion: $ => seq('assert', $._expression),
 
