@@ -80,3 +80,35 @@ class A {
           (identifier))
         type: (identifier)
         name: (identifier)))))
+==========
+Class implementing interfaces
+==========
+class Impl extends Base implements Foo, a.Bar, Comparable<Impl> {
+}
+---
+(source_file
+  (class_definition
+    name: (identifier)
+    superclass: (identifier)
+    interfaces: (type_list
+      (identifier)
+      (dotted_identifier
+        (identifier)
+        (identifier))
+      (type_with_generics
+        (identifier)
+        (generics
+          (identifier))))
+    body: (closure)))
+==========
+Interface extending interfaces
+==========
+interface Foo extends Bar, Baz {
+}
+---
+(source_file
+  (class_definition
+    name: (identifier)
+    superclass: (identifier)
+    superclass: (identifier)
+    body: (closure)))

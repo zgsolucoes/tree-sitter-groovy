@@ -239,10 +239,16 @@ module.exports = grammar({
       optional(field('generics', $.generic_parameters)),
       optional(seq(
         'extends',
-        field('superclass', $._primary_expression),
+        field('superclass', $._class_type),
+        repeat(seq(',', field('superclass', $._class_type))), // interface A extends B, C
       )),
+      optional(seq('implements', field('interfaces', $.type_list))),
       field('body', $.closure),
     ),
+
+    type_list: $ => seq($._class_type, repeat(seq(',', $._class_type))),
+
+    _class_type: $ => choice(prec.dynamic(1, $.type_with_generics), $._primary_expression),
 
     generic_parameters: $ => seq(
       '<',
