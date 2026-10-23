@@ -41,6 +41,8 @@ module.exports = grammar({
     [$._callable_expression, $.juxt_function_call],
     [$._callable_expression, $._juxt_argument_list],
     [$._juxtable_expression, $._juxt_argument_list],
+    [$._callable_expression, $.function_call, $.juxt_function_call],
+    [$._callable_expression, $.function_call],
   ],
 
   rules: {
@@ -77,6 +79,7 @@ module.exports = grammar({
         $.try_statement,
         $.while_loop,
         $.closure,
+        $.static_initializer,
         alias("break", $.break),
         alias("continue", $.continue),
         $._expression,
@@ -84,6 +87,8 @@ module.exports = grammar({
       ),
       optional(';')
     )),
+
+    static_initializer: $ => seq('static', field('body', $.closure)),
 
     label: $ => seq(field('name', $.identifier), ":"),
 
@@ -284,7 +289,7 @@ module.exports = grammar({
         '/**',
         // optional(
           token.immediate(/[*\n\s]+/),
-          alias(token.immediate(/[^\n\.]+[\.]?/), $.first_line),
+          alias(token.immediate(/([^\n\.*]|\*[^\/\n])+[\.]?/), $.first_line), // stops before `*/` on one-line docs
         // ),
         repeat(
           choice(
@@ -359,7 +364,16 @@ module.exports = grammar({
       $.unary_op,
       $.access_op,
       $.closure,
+      $.cast_expression,
       alias("null", $.null),
+    )),
+
+    // `(Type) expr`: only a class-like or builtin type, so `(a) - b` stays arithmetic
+    cast_expression: $ => prec.right(PREC.TOP, seq(
+      '(',
+      field('type', choice($.builtintype, $.array_type, $.type_with_generics, $._type_identifier)),
+      ')',
+      field('value', $._expression),
     )),
 
     _primary_expression: $ => prec.left(1, choice(
@@ -368,6 +382,7 @@ module.exports = grammar({
       $.string,
       $.list,
       $.map,
+      $.object_creation,
       $._callable_expression,
     )),
 
@@ -422,8 +437,10 @@ module.exports = grammar({
     for_in_loop: $ => prec(1, seq(
       'for',
       '(',
+      repeat($.modifier),
+      optional(field('type', choice($._type, 'def'))),
       field('variable', $.identifier),
-      'in',
+      choice('in', ':'),
       field('collection', $._expression),
       ')',
       field('body', choice(
@@ -432,8 +449,27 @@ module.exports = grammar({
       )),
     )),
 
-    function_call: $ => prec.left(2, seq( //higher precedence than juxt_function_call
-      field('function', $._callable_expression),
+    function_call: $ => choice(
+      prec.left(2, seq( //higher precedence than juxt_function_call
+        field('function', $._callable_expression),
+        field('args', $.argument_list),
+      )),
+      // Grails UrlMappings DSL: `get '/api/x'(controller: 'c')`, `"/$controller/$action?" { }`
+      prec.left(2, seq(
+        field('function', $.string),
+        field('args', choice($.argument_list, alias($.closure, $.argument_list))),
+      )),
+      // `xs.collect { .. }.join()`: a closure-only call that a member access follows
+      prec.dynamic(-1, seq(
+        field('function', $._juxtable_expression),
+        field('args', alias($.closure, $.argument_list)),
+      )),
+    ),
+
+    // `new ArrayList<>(xs)`, `new HashMap<String, Long>()`; plain `new Foo()` stays a unary_op
+    object_creation: $ => prec(PREC.TOP, seq(
+      'new',
+      field('type', $.type_with_generics),
       field('args', $.argument_list),
     )),
 
@@ -472,7 +508,7 @@ module.exports = grammar({
       $._parameter_body,
     )),
 
-    _closure_parameter: $ => $._parameter_body,
+    _closure_parameter: $ => seq(repeat($.modifier), $._parameter_body),
 
     _parameter_body: $ => prec(-1, seq(
       optional(field('type', choice($._type, 'def'))),
@@ -487,17 +523,33 @@ module.exports = grammar({
       field('type', choice($._type, 'def')),
       field('function', choice($.identifier, $.quoted_identifier)),
       field('parameters', $.parameter_list),
+      optional($.throws),
     )),
 
-    function_definition: $ => prec(3, seq(
-      repeat($.annotation),
-      optional($.access_modifier),
-      repeat($.modifier),
-      field('type', choice($._type, 'def')),
-      field('function', choice($.identifier, $.quoted_identifier)),
-      field('parameters', $.parameter_list),
-      field('body', $.closure), //TODO: optional return
-    )),
+    function_definition: $ => choice(
+      prec(3, seq(
+        repeat($.annotation),
+        optional($.access_modifier),
+        repeat($.modifier),
+        field('type', choice($._type, 'def')),
+        field('function', choice($.identifier, $.quoted_identifier)),
+        field('parameters', $.parameter_list),
+        optional($.throws),
+        field('body', $.closure), //TODO: optional return
+      )),
+      // `static sumAll(List items) { .. }`: a modifier stands in for the return type
+      prec(3, seq(
+        repeat($.annotation),
+        optional($.access_modifier),
+        repeat1($.modifier),
+        field('function', $.identifier),
+        field('parameters', $.parameter_list),
+        optional($.throws),
+        field('body', $.closure),
+      )),
+    ),
+
+    throws: $ => prec.left(seq('throws', $._class_type, repeat(seq(',', $._class_type)))),
 
     identifier: $ => IDENTIFIER_REGEX,
     _type_identifier: $ => alias(TYPE_REGEX, $.identifier),
@@ -754,7 +806,7 @@ module.exports = grammar({
         $._statement,
         $.closure,
       )),
-      optional(
+      repeat(
         seq(
           'catch',
           '(',
@@ -780,6 +832,7 @@ module.exports = grammar({
     builtintype: $ => choice(
       'int',
       'boolean',
+      'byte',
       'char',
       'short',
       'int',
@@ -813,7 +866,7 @@ module.exports = grammar({
     //TODO diamond operator
     type_with_generics: $ => seq($._type, $.generics),
 
-    generics: $ => seq('<', list_of($._type), '>'),
+    generics: $ => seq('<', optional(list_of($._type)), '>'),
 
     unary_op: $ =>
       choice(

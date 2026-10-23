@@ -1,0 +1,302 @@
+========================================
+Closure parameters with modifiers
+========================================
+
+rs.find { final Result result -> !result.success }
+
+----
+
+(source_file
+  (juxt_function_call
+    (dotted_identifier
+      (identifier)
+      (identifier))
+    (argument_list
+      (closure
+        (parameter_list
+          (parameter
+            (modifier)
+            (identifier)
+            (identifier)))
+        (unary_op
+          (dotted_identifier
+            (identifier)
+            (identifier)))))))
+
+========================================
+Typed for-in and for-each loops
+========================================
+
+for (final Result u in us) { x() }
+for (Billing b : bs) { y() }
+
+----
+
+(source_file
+  (for_in_loop
+    (modifier)
+    (identifier)
+    (identifier)
+    (identifier)
+    (closure
+      (function_call
+        (identifier)
+        (argument_list))))
+  (for_in_loop
+    (identifier)
+    (identifier)
+    (identifier)
+    (closure
+      (function_call
+        (identifier)
+        (argument_list)))))
+
+========================================
+Multiple catch clauses
+========================================
+
+try { x() } catch (final IOException e) { y() } catch (Exception e) { z() }
+
+----
+
+(source_file
+  (try_statement
+    (closure
+      (function_call
+        (identifier)
+        (argument_list)))
+    (declaration
+      (modifier)
+      (identifier)
+      (identifier))
+    (closure
+      (function_call
+        (identifier)
+        (argument_list)))
+    (declaration
+      (identifier)
+      (identifier))
+    (closure
+      (function_call
+        (identifier)
+        (argument_list)))))
+
+========================================
+Cast expression
+========================================
+
+Long id = ((List<Long>) r.ids).first()
+
+----
+
+(source_file
+  (declaration
+    (identifier)
+    (identifier)
+    (function_call
+      (dotted_identifier
+        (parenthesized_expression
+          (cast_expression
+            (type_with_generics
+              (identifier)
+              (generics
+                (identifier)))
+            (dotted_identifier
+              (identifier)
+              (identifier))))
+        (identifier))
+      (argument_list))))
+
+========================================
+Object creation with generics
+========================================
+
+List<Billing> a = new ArrayList<>(xs)
+Map<String, Long> b = new HashMap<String, Long>().asImmutable()
+
+----
+
+(source_file
+  (declaration
+    (type_with_generics
+      (identifier)
+      (generics
+        (identifier)))
+    (identifier)
+    (object_creation
+      (type_with_generics
+        (identifier)
+        (generics))
+      (argument_list
+        (identifier))))
+  (declaration
+    (type_with_generics
+      (identifier)
+      (generics
+        (identifier)
+        (identifier)))
+    (identifier)
+    (function_call
+      (dotted_identifier
+        (object_creation
+          (type_with_generics
+            (identifier)
+            (generics
+              (identifier)
+              (identifier)))
+          (argument_list))
+        (identifier))
+      (argument_list))))
+
+========================================
+Member access after closure call
+========================================
+
+xs.collect { it.name }.join(', ')
+
+----
+
+(source_file
+  (function_call
+    (dotted_identifier
+      (function_call
+        (dotted_identifier
+          (identifier)
+          (identifier))
+        (argument_list
+          (dotted_identifier
+            (identifier)
+            (identifier))))
+      (identifier))
+    (argument_list
+      (string
+        (string_content)))))
+
+========================================
+Method with throws and byte array
+========================================
+
+private byte[] f(Document xml) throws IOException, SAXException {
+	return null
+}
+
+----
+
+(source_file
+  (function_definition
+    (access_modifier)
+    (array_type
+      (builtintype))
+    (identifier)
+    (parameter_list
+      (parameter
+        (identifier)
+        (identifier)))
+    (throws
+      (identifier)
+      (identifier))
+    (closure
+      (return
+        (null)))))
+
+========================================
+Method without return type
+========================================
+
+static sumAll(List<Item> items) {
+	return items
+}
+
+----
+
+(source_file
+  (function_definition
+    (modifier)
+    (identifier)
+    (parameter_list
+      (parameter
+        (type_with_generics
+          (identifier)
+          (generics
+            (identifier)))
+        (identifier)))
+    (closure
+      (return
+        (identifier)))))
+
+========================================
+Static initializer
+========================================
+
+class A {
+	static {
+		x()
+	}
+}
+
+----
+
+(source_file
+  (class_definition
+    (identifier)
+    (closure
+      (static_initializer
+        (closure
+          (function_call
+            (identifier)
+            (argument_list)))))))
+
+========================================
+Grails URL mapping
+========================================
+
+get '/api/x'(controller: 'x', action: 'y')
+"/$controller/$action?" {
+}
+
+----
+
+(source_file
+  (identifier)
+  (function_call
+    (string
+      (string_content))
+    (argument_list
+      (map_item
+        (identifier)
+        (string
+          (string_content)))
+      (map_item
+        (identifier)
+        (string
+          (string_content)))))
+  (function_call
+    (string
+      (string_content)
+      (interpolation
+        (identifier))
+      (string_content)
+      (interpolation
+        (identifier))
+      (string_content))
+    (argument_list)))
+
+========================================
+One-line groovydoc in arguments
+========================================
+
+f( /** @see C#s */
+	a: 1
+)
+
+----
+
+(source_file
+  (function_call
+    (identifier)
+    (argument_list
+      (groovy_doc
+        (first_line))
+      (map_item
+        (identifier)
+        (number_literal)))))
