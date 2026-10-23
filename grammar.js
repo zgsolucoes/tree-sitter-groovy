@@ -43,6 +43,7 @@ module.exports = grammar({
     [$._juxtable_expression, $._juxt_argument_list],
     [$._callable_expression, $.function_call, $.juxt_function_call],
     [$._callable_expression, $.function_call],
+    [$.dotted_identifier, $.scoped_type],
   ],
 
   rules: {
@@ -213,7 +214,6 @@ module.exports = grammar({
           ["!in", PREC.COMPARE],
           ["instanceof", PREC.COMPARE],
           ["!instanceof", PREC.COMPARE],
-          ["as", PREC.COMPARE],
           ["==", PREC.COMPARE_EQ],
           ["!=", PREC.COMPARE_EQ],
           ["<=>", PREC.COMPARE_EQ],
@@ -230,7 +230,9 @@ module.exports = grammar({
         ].map(([operator, precedence]) =>
           prec.left(precedence, seq($._expression, operator, $._expression))
         ),
-        prec.right(PREC.POW, seq($._expression, "**", $._expression))
+        prec.right(PREC.POW, seq($._expression, "**", $._expression)),
+        // `xs as List<T>`, `x as String[]`, `x as int`: coercion takes a type
+        prec.right(PREC.COMPARE, seq($._expression, 'as', $._type)),
       ),
 
     boolean_literal: $ => choice('true', 'false'),
@@ -847,7 +849,11 @@ module.exports = grammar({
       $.array_type, //TODO: int[5]?
       $.type_with_generics,
       $._type_identifier,
+      $.scoped_type,
     )),
+
+    // `Map.Entry<K, V>`: a nested type
+    scoped_type: $ => prec.left(seq($._type_identifier, repeat1(seq('.', $._type_identifier)))),
 
     array_type: $ => seq($._type, '[]'),
 
@@ -864,7 +870,7 @@ module.exports = grammar({
     ),
 
     //TODO diamond operator
-    type_with_generics: $ => seq($._type, $.generics),
+    type_with_generics: $ => prec(PREC.TOP, seq($._type, $.generics)), // `x as Set<T>` shifts into the generics
 
     generics: $ => seq('<', optional(list_of($._type)), '>'),
 

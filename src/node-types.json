@@ -424,6 +424,10 @@
           "named": true
         },
         {
+          "type": "scoped_type",
+          "named": true
+        },
+        {
           "type": "type_with_generics",
           "named": true
         }
@@ -617,11 +621,19 @@
           "named": true
         },
         {
+          "type": "array_type",
+          "named": true
+        },
+        {
           "type": "binary_op",
           "named": true
         },
         {
           "type": "boolean_literal",
+          "named": true
+        },
+        {
+          "type": "builtintype",
           "named": true
         },
         {
@@ -677,11 +689,19 @@
           "named": true
         },
         {
+          "type": "scoped_type",
+          "named": true
+        },
+        {
           "type": "string",
           "named": true
         },
         {
           "type": "ternary_op",
+          "named": true
+        },
+        {
+          "type": "type_with_generics",
           "named": true
         },
         {
@@ -1407,6 +1427,10 @@
             "named": true
           },
           {
+            "type": "scoped_type",
+            "named": true
+          },
+          {
             "type": "type_with_generics",
             "named": true
           }
@@ -2052,6 +2076,10 @@
             "named": true
           },
           {
+            "type": "scoped_type",
+            "named": true
+          },
+          {
             "type": "type_with_generics",
             "named": true
           }
@@ -2660,6 +2688,10 @@
             "named": true
           },
           {
+            "type": "scoped_type",
+            "named": true
+          },
+          {
             "type": "type_with_generics",
             "named": true
           }
@@ -2748,6 +2780,10 @@
             "named": true
           },
           {
+            "type": "scoped_type",
+            "named": true
+          },
+          {
             "type": "type_with_generics",
             "named": true
           }
@@ -2808,6 +2844,10 @@
             "named": true
           },
           {
+            "type": "scoped_type",
+            "named": true
+          },
+          {
             "type": "type_with_generics",
             "named": true
           }
@@ -2848,6 +2888,10 @@
         },
         {
           "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "scoped_type",
           "named": true
         },
         {
@@ -3908,6 +3952,10 @@
             "named": true
           },
           {
+            "type": "scoped_type",
+            "named": true
+          },
+          {
             "type": "type_with_generics",
             "named": true
           }
@@ -4256,6 +4304,21 @@
         },
         {
           "type": "unary_op",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "scoped_type",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "identifier",
           "named": true
         }
       ]
@@ -5224,6 +5287,10 @@
         },
         {
           "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "scoped_type",
           "named": true
         },
         {

@@ -300,3 +300,82 @@ f( /** @see C#s */
       (map_item
         (identifier)
         (number_literal)))))
+
+========================================
+Coercion to a generic type
+========================================
+
+Set<Rule> s = [] as Set<Rule>
+
+----
+
+(source_file
+  (declaration
+    (type_with_generics
+      (identifier)
+      (generics
+        (identifier)))
+    (identifier)
+    (binary_op
+      (list)
+      (type_with_generics
+        (identifier)
+        (generics
+          (identifier))))))
+
+========================================
+Coercion to an array type
+========================================
+
+r.e = (xs ?: []) as String[]
+
+----
+
+(source_file
+  (assignment
+    (dotted_identifier
+      (identifier)
+      (identifier))
+    (binary_op
+      (parenthesized_expression
+        (binary_op
+          (identifier)
+          (list)))
+      (array_type
+        (identifier)))))
+
+========================================
+Nested type in closure parameter
+========================================
+
+m.entrySet().each { Map.Entry<Long, List<Billing>> entry -> entry.key }
+
+----
+
+(source_file
+  (juxt_function_call
+    (dotted_identifier
+      (function_call
+        (dotted_identifier
+          (identifier)
+          (identifier))
+        (argument_list))
+      (identifier))
+    (argument_list
+      (closure
+        (parameter_list
+          (parameter
+            (type_with_generics
+              (scoped_type
+                (identifier)
+                (identifier))
+              (generics
+                (identifier)
+                (type_with_generics
+                  (identifier)
+                  (generics
+                    (identifier)))))
+            (identifier)))
+        (dotted_identifier
+          (identifier)
+          (identifier))))))
